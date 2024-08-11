@@ -1,0 +1,24 @@
+{
+    "file_types": [
+        {
+            "extension": ".jpg",
+            "content": "JPEG image data"
+        },
+        {
+            "extension": ".jpeg",
+            "content": "JPEG image data"
+        },
+        {
+            "extension": ".png",
+            "content": "PNG image data"
+        },
+        {
+            "extension": ".gif",
+            "content": "GIF image data"
+        },
+        {
+            "extension": ".pdf",
+            "content": "PDF document"
+        }
+    ]
+}
