@@ -48,7 +48,7 @@ func main() {
 			return
 		}
 
-		// Extension check
+		// 1st check
 		contentDescription, ok := fileinfo[fileExt]
 		if !ok {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "File extension is not allowed"})
@@ -69,7 +69,7 @@ func main() {
 			return
 		}
 
-		// 1st check
+		// 2nd check
 		cmd := exec.Command("file", tempFile.Name())
 		output, err := cmd.Output()
 		if err != nil {
@@ -82,21 +82,8 @@ func main() {
 			return
 		}
 
-		// 2nd check
-		// cmd = exec.Command("strings", tempFile.Name())
-		// output, err = cmd.Output()
-		// if err != nil {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		// 	return
-		// }
-
-		// if !containsContent(string(output), contentDescription) {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "File has irregular strings"})
-		// 	return
-		// }
-
 		// Move the file to the final destination
-		finalPath := "user_files/" + fileHeader.Filename
+		finalPath := "./user_files/" + fileHeader.Filename
 		err = os.Rename(tempFile.Name(), finalPath)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
