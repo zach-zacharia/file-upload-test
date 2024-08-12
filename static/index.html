@@ -25,7 +25,7 @@
             .then(data => {
                 var resultsDiv = document.getElementById("response");
                 resultsDiv.innerHTML = `
-                    <p>Message: ${data.message}</p>
+                    <p>${data.message}</p>
                 `;
             })
             .catch(error => {
