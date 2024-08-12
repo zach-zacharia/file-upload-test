@@ -15,9 +15,9 @@ import (
 
 // FileType represents each file type with an extension and content description
 type FileType struct {
-	Extension string `json:"extension"`
-	Content   string `json:"content"`
-	Strings   string `json:"strings"`
+	Extension string   `json:"extension"`
+	Content   string   `json:"content"`
+	Strings   []string `json:"strings"`
 }
 
 // FileTypes represents the collection of file types
@@ -42,7 +42,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, err := extensionCheck()
+		fileinfo, filestrings, err := extensionCheck()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -82,6 +82,19 @@ func main() {
 			return
 		}
 
+		// 3rd check
+		cmd = exec.Command("strings", tempFile.Name())
+		output, err = cmd.Output()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if !containsAnyString(string(output), filestrings[fileExt]) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "File strings does not match the expected type"})
+			return
+		}
+
 		// Move the file to the final destination
 		finalPath := "./user_files/" + fileHeader.Filename
 		err = os.Rename(tempFile.Name(), finalPath)
@@ -97,16 +110,16 @@ func main() {
 }
 
 // extensionCheck reads the JSON file and returns a map of file extensions to content descriptions
-func extensionCheck() (map[string]string, error) {
+func extensionCheck() (map[string]string, map[string][]string, error) {
 	data, err := os.ReadFile("allowed.json")
 	if err != nil {
-		return nil, fmt.Errorf("error reading file: %v", err)
+		return nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
 
 	var fileTypes FileTypes
 	err = json.Unmarshal(data, &fileTypes)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing JSON file: %v", err)
+		return nil, nil, fmt.Errorf("error parsing JSON file: %v", err)
 	}
 
 	extMap := make(map[string]string)
@@ -114,7 +127,12 @@ func extensionCheck() (map[string]string, error) {
 		extMap[ft.Extension] = ft.Content
 	}
 
-	return extMap, nil
+	strMap := make(map[string][]string)
+	for _, ft := range fileTypes.FileTypes {
+		strMap[ft.Extension] = ft.Strings
+	}
+
+	return extMap, strMap, nil
 }
 
 func containsContent(output, contentDescription string) bool {
@@ -123,6 +141,18 @@ func containsContent(output, contentDescription string) bool {
 
 	normalizedContent := normalizeContentDescription(contentDescription)
 	return strings.Contains(strings.ToLower(output), normalizedContent)
+}
+
+func containsAnyString(output string, expectedStrings []string) bool {
+	fmt.Printf("Command output: %s\n", output)            // Debug print
+	fmt.Printf("Expected strings: %v\n", expectedStrings) // Debug print
+
+	for _, str := range expectedStrings {
+		if strings.Contains(strings.ToLower(output), strings.ToLower(strings.TrimSpace(str))) {
+			return true
+		}
+	}
+	return false
 }
 
 func normalizeContentDescription(content string) string {

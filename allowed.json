@@ -2,23 +2,43 @@
     "file_types": [
         {
             "extension": ".jpg",
-            "content": "JPEG image data"
+            "content": "JPEG image data",
+            "strings": [
+                "JPG",
+                "JPEG",
+                "JFIF"
+            ]
         },
         {
             "extension": ".jpeg",
-            "content": "JPEG image data"
+            "content": "JPEG image data",
+            "strings": [
+                "JPG",
+                "JPEG",
+                "JFIF"
+            ]
         },
         {
             "extension": ".png",
-            "content": "PNG image data"
+            "content": "PNG image data",
+            "strings": [
+                "PNG",
+                "IHDR"
+            ]
         },
         {
             "extension": ".gif",
-            "content": "GIF image data"
+            "content": "GIF image data",
+            "strings": [
+                "GIF"
+            ]
         },
         {
             "extension": ".pdf",
-            "content": "PDF document"
+            "content": "PDF document",
+            "strings":[
+                "PDF"
+            ]
         }
     ]
 }
