@@ -51,7 +51,7 @@ func main() {
 		// 1st check
 		contentDescription, ok := fileinfo[fileExt]
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "File extension is not allowed"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "File extension is not allowed"})
 			return
 		}
 
@@ -78,7 +78,7 @@ func main() {
 		}
 
 		if !containsContent(string(output), contentDescription) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "File content does not match the expected type"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "File content does not match the expected type"})
 			return
 		}
 
@@ -91,7 +91,7 @@ func main() {
 		}
 
 		if !containsAnyString(string(output), filestrings[fileExt]) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "File strings does not match the expected type"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "File strings does not match the expected type"})
 			return
 		}
 

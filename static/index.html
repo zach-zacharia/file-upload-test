@@ -2,12 +2,48 @@
 <html>
 <head>
     <title>Upload File</title>
+    <script>
+        function upload_file(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            var fileInput = document.querySelector('input[type="file"]');
+            var file = fileInput.files[0]; // Get the selected file
+
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+
+            var input = new FormData();
+            input.append("file", file);
+
+            fetch("/upload", { // Adjust endpoint if necessary
+                method: "POST",
+                body: input
+            })
+            .then(response => response.json())
+            .then(data => {
+                var resultsDiv = document.getElementById("response");
+                resultsDiv.innerHTML = `
+                    <p>Message: ${data.message}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
 </head>
 <body>
-    <h1>Upload File</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" />
-        <button type="submit">Upload</button>
-    </form>
+    <div id="upload_area">
+        <h1>Upload File</h1>
+        <form id="upload_form" onsubmit="upload_file(event)" enctype="multipart/form-data">
+            <input type="file" name="file" />
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+    <div id="response">
+        <!-- Results are displayed here -->
+    </div>
 </body>
 </html>
