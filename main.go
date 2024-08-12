@@ -37,27 +37,30 @@ func main() {
 	server.POST("/upload", func(c *gin.Context) {
 		file, fileHeader, err := c.Request.FormFile("file")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			return
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
 		fileinfo, filestrings, err := extensionCheck()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"message": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
 		// 1st check
 		contentDescription, ok := fileinfo[fileExt]
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "File extension is not allowed"})
+			response := gin.H{"message": "File extension is not allowed"}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 
 		tempFile, err := os.CreateTemp("./user_files", fileHeader.Filename)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"error": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 		defer os.Remove(tempFile.Name())
@@ -65,7 +68,8 @@ func main() {
 
 		_, err = io.Copy(tempFile, file)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"error": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
@@ -73,12 +77,14 @@ func main() {
 		cmd := exec.Command("file", tempFile.Name())
 		output, err := cmd.Output()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"error": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
 		if !containsContent(string(output), contentDescription) {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "File content does not match the expected type"})
+			response := gin.H{"message": "File content does not match the expected type"}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 
@@ -86,12 +92,14 @@ func main() {
 		cmd = exec.Command("strings", tempFile.Name())
 		output, err = cmd.Output()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"error": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
 		if !containsAnyString(string(output), filestrings[fileExt]) {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "File strings does not match the expected type"})
+			response := gin.H{"message": "File strings does not match the expected type"}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 
@@ -99,11 +107,14 @@ func main() {
 		finalPath := "./user_files/" + fileHeader.Filename
 		err = os.Rename(tempFile.Name(), finalPath)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response := gin.H{"error": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "File uploaded successfully"})
+		response := gin.H{"message": "File uploaded successfully"}
+
+		c.JSON(http.StatusOK, response)
 	})
 
 	server.Run(":2000")
