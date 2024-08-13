@@ -7,6 +7,10 @@
                 "JPG",
                 "JPEG",
                 "JFIF"
+            ],
+            "contains": [
+                "JPEG image data",
+                "TIFF image data"
             ]
         },
         {
@@ -16,6 +20,10 @@
                 "JPG",
                 "JPEG",
                 "JFIF"
+            ],
+            "contains": [
+                "JPEG image data",
+                "TIFF image data"
             ]
         },
         {
@@ -24,6 +32,10 @@
             "strings": [
                 "PNG",
                 "IHDR"
+            ],
+            "contains": [
+                "PNG image",
+                "Zlib compressed data"
             ]
         },
         {
@@ -31,6 +43,9 @@
             "content": "GIF image data",
             "strings": [
                 "GIF"
+            ],
+            "contains": [
+                "GIF image data"
             ]
         },
         {

@@ -18,6 +18,7 @@ type FileType struct {
 	Extension string   `json:"extension"`
 	Content   string   `json:"content"`
 	Strings   []string `json:"strings"`
+	Contains  []string `json:"contains"`
 }
 
 // FileTypes represents the collection of file types
@@ -42,7 +43,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, filestrings, err := extensionCheck()
+		fileinfo, filestrings, filecontents, err := extensionCheck()
 		if err != nil {
 			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
@@ -59,7 +60,7 @@ func main() {
 
 		tempFile, err := os.CreateTemp("./user_files", fileHeader.Filename)
 		if err != nil {
-			response := gin.H{"error": err.Error()}
+			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
@@ -68,7 +69,7 @@ func main() {
 
 		_, err = io.Copy(tempFile, file)
 		if err != nil {
-			response := gin.H{"error": err.Error()}
+			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
@@ -77,7 +78,7 @@ func main() {
 		cmd := exec.Command("file", tempFile.Name())
 		output, err := cmd.Output()
 		if err != nil {
-			response := gin.H{"error": err.Error()}
+			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
@@ -92,9 +93,15 @@ func main() {
 		cmd = exec.Command("strings", tempFile.Name())
 		output, err = cmd.Output()
 		if err != nil {
-			response := gin.H{"error": err.Error()}
+			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
 			return
+		}
+
+		// Image check using 'binwalk'
+		images := []string{".jpg", ".jpeg", ".png", ".gif"}
+		if containsAnyString(fileExt, images) {
+			fmt.Print("Image file detected. Performing 'binwalk' scan...\n")
 		}
 
 		if !containsAnyString(string(output), filestrings[fileExt]) {
@@ -107,7 +114,7 @@ func main() {
 		finalPath := "./user_files/" + fileHeader.Filename
 		err = os.Rename(tempFile.Name(), finalPath)
 		if err != nil {
-			response := gin.H{"error": err.Error()}
+			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
@@ -121,16 +128,16 @@ func main() {
 }
 
 // extensionCheck reads the JSON file and returns a map of file extensions to content descriptions
-func extensionCheck() (map[string]string, map[string][]string, error) {
+func extensionCheck() (map[string]string, map[string][]string, map[string][]string, error) {
 	data, err := os.ReadFile("allowed.json")
 	if err != nil {
-		return nil, nil, fmt.Errorf("error reading file: %v", err)
+		return nil, nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
 
 	var fileTypes FileTypes
 	err = json.Unmarshal(data, &fileTypes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error parsing JSON file: %v", err)
+		return nil, nil, nil, fmt.Errorf("error parsing JSON file: %v", err)
 	}
 
 	extMap := make(map[string]string)
@@ -143,7 +150,12 @@ func extensionCheck() (map[string]string, map[string][]string, error) {
 		strMap[ft.Extension] = ft.Strings
 	}
 
-	return extMap, strMap, nil
+	conMap := make(map[string][]string)
+	for _, ft := range fileTypes.FileTypes {
+		conMap[ft.Extension] = ft.Contains
+	}
+
+	return extMap, strMap, conMap, nil
 }
 
 func containsContent(output, contentDescription string) bool {
