@@ -43,7 +43,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, filestrings, filecontents, err := extensionCheck()
+		fileinfo, filestrings, err := extensionCheck()
 		if err != nil {
 			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
@@ -102,6 +102,14 @@ func main() {
 		images := []string{".jpg", ".jpeg", ".png", ".gif"}
 		if containsAnyString(fileExt, images) {
 			fmt.Print("Image file detected. Performing 'binwalk' scan...\n")
+			cmd = exec.Command("binwalk", tempFile.Name())
+			output, err = cmd.Output()
+			if err != nil {
+				response := gin.H{"message": err.Error()}
+				c.JSON(http.StatusInternalServerError, response)
+				return
+			}
+
 		}
 
 		if !containsAnyString(string(output), filestrings[fileExt]) {
@@ -128,16 +136,16 @@ func main() {
 }
 
 // extensionCheck reads the JSON file and returns a map of file extensions to content descriptions
-func extensionCheck() (map[string]string, map[string][]string, map[string][]string, error) {
+func extensionCheck() (map[string]string, map[string][]string, error) {
 	data, err := os.ReadFile("allowed.json")
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error reading file: %v", err)
+		return nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
 
 	var fileTypes FileTypes
 	err = json.Unmarshal(data, &fileTypes)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error parsing JSON file: %v", err)
+		return nil, nil, fmt.Errorf("error parsing JSON file: %v", err)
 	}
 
 	extMap := make(map[string]string)
@@ -155,7 +163,7 @@ func extensionCheck() (map[string]string, map[string][]string, map[string][]stri
 		conMap[ft.Extension] = ft.Contains
 	}
 
-	return extMap, strMap, conMap, nil
+	return extMap, strMap, nil
 }
 
 func containsContent(output, contentDescription string) bool {
@@ -181,3 +189,34 @@ func containsAnyString(output string, expectedStrings []string) bool {
 func normalizeContentDescription(content string) string {
 	return strings.ToLower(strings.TrimSpace(content))
 }
+
+// func hiddenFileCheck(output string) []string {
+// 	lines := strings.Split(output, "\n")
+
+// 	// Iterate through lines to process each
+// 	for _, line := range lines {
+// 		// Skip header and separator lines
+// 		if strings.HasPrefix(line, "DECIMAL") || strings.HasPrefix(line, "------") {
+// 			continue
+// 		}
+
+// 		// Extract the description part
+// 		fields := strings.Fields(line)
+// 		if len(fields) < 3 {
+// 			continue // Skip lines that don't have enough fields
+// 		}
+
+// 		// Join all parts after the second field to form the description
+// 		description := strings.Join(fields[2:], " ")
+
+// 		// Extract the first sentence before the comma
+// 		firstSentence := strings.SplitN(description, ",", 2)[0]
+// 		firstSentence = strings.TrimSpace(firstSentence)
+// 		lines := strings.Split(firstSentence, "\n")
+
+// 		var fileList []string
+// 		fileList = append(fileList, lines...)
+// 		return fileList
+// 	}
+// 	return nil
+// }
