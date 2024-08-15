@@ -50,7 +50,7 @@ func main() {
 			return
 		}
 
-		// 1st check
+		// Extension check
 		contentDescription, ok := fileinfo[fileExt]
 		if !ok {
 			response := gin.H{"message": "File extension is not allowed"}
@@ -74,7 +74,7 @@ func main() {
 			return
 		}
 
-		// 2nd check
+		// File description check
 		cmd := exec.Command("file", tempFile.Name())
 		output, err := cmd.Output()
 		if err != nil {
@@ -89,7 +89,7 @@ func main() {
 			return
 		}
 
-		// 3rd check
+		// File strings check
 		cmd = exec.Command("strings", tempFile.Name())
 		output, err = cmd.Output()
 		if err != nil {
@@ -98,25 +98,15 @@ func main() {
 			return
 		}
 
-		// Image check using 'binwalk'
-		images := []string{".jpg", ".jpeg", ".png", ".gif"}
-		if containsAnyString(fileExt, images) {
-			fmt.Print("Image file detected. Performing 'binwalk' scan...\n")
-			cmd = exec.Command("binwalk", tempFile.Name())
-			output, err = cmd.Output()
-			if err != nil {
-				response := gin.H{"message": err.Error()}
-				c.JSON(http.StatusInternalServerError, response)
-				return
-			}
-
-		}
-
 		if !containsAnyString(string(output), filestrings[fileExt]) {
-			response := gin.H{"message": "File strings does not match the expected type"}
+			response := gin.H{"message": "Irregular strings in file detected"}
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
+
+		// Image check using 'binwalk'
+		// images := []string{".jpg", ".jpeg", ".png", ".gif"}
+		// if tempFile.Name()
 
 		// Move the file to the final destination
 		finalPath := "./user_files/" + fileHeader.Filename
@@ -137,7 +127,7 @@ func main() {
 
 // extensionCheck reads the JSON file and returns a map of file extensions to content descriptions
 func extensionCheck() (map[string]string, map[string][]string, error) {
-	data, err := os.ReadFile("allowed.json")
+	data, err := os.ReadFile("rules.json")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error reading file: %v", err)
 	}
@@ -188,6 +178,10 @@ func containsAnyString(output string, expectedStrings []string) bool {
 
 func normalizeContentDescription(content string) string {
 	return strings.ToLower(strings.TrimSpace(content))
+}
+
+func hiddenFileCheck([]string, []string) bool {
+	return true
 }
 
 // func hiddenFileCheck(output string) []string {
