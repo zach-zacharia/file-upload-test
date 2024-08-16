@@ -118,10 +118,7 @@ func main() {
 			return
 		}
 
-		file_list := hiddenFileCheck(string(output))
-		fmt.Print(file_list)
-
-		if containsAnyString(file_list, forbiddenFiles) {
+		if containsAnyString(string(output), forbiddenFiles) {
 			color.Red("Forbidden hidden files found!")
 			response := gin.H{"message": "Forbidden hidden files detected"}
 			c.JSON(http.StatusForbidden, response)
@@ -197,32 +194,4 @@ func containsAnyString(output string, expectedStrings []string) bool {
 
 func normalizeContentDescription(content string) string {
 	return strings.ToLower(strings.TrimSpace(content))
-}
-
-func hiddenFileCheck(output string) string {
-	lines := strings.Split(output, "\n")
-
-	// Iterate through lines to process each
-	for _, line := range lines {
-		// Skip header and separator lines
-		if strings.HasPrefix(line, "DECIMAL") || strings.HasPrefix(line, "------") {
-			continue
-		}
-
-		// Extract the description part
-		fields := strings.Fields(line)
-		if len(fields) < 3 {
-			continue // Skip lines that don't have enough fields
-		}
-
-		// Join all parts after the second field to form the description
-		description := strings.Join(fields[2:], " ")
-
-		// Extract the first sentence before the comma
-		firstSentence := strings.SplitN(description, ",", 2)[0]
-		firstSentence = strings.TrimSpace(firstSentence)
-
-		return firstSentence
-	}
-	return ""
 }
