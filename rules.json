@@ -55,5 +55,12 @@
                 "PDF"
             ]
         }
+    ],
+
+    "forbidden_files": [
+        "executable",
+        "script",
+        "php",
+        "xxe"
     ]
 }
