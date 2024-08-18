@@ -180,10 +180,6 @@ func normalizeContentDescription(content string) string {
 	return strings.ToLower(strings.TrimSpace(content))
 }
 
-func hiddenFileCheck(input []string, allowed_files []string) bool {
-	return true
-}
-
 // func hiddenFileCheck(output string) []string {
 // 	lines := strings.Split(output, "\n")
 
