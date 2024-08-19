@@ -45,9 +45,10 @@
     "forbidden_keywords": [
         "executable",
         "script",
-        "xxe",
+        "&xxe",
         "php",
         "<?php",
+        "<?xml",
         "?>"
     ]
 }
