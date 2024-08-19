@@ -1,8 +1,8 @@
 {
-    "file_types": [
+    "allowed_files": [
         {
             "extension": ".jpg",
-            "content": "JPEG image data",
+            "description": "JPEG image data",
             "strings": [
                 "JPG",
                 "JPEG",
@@ -11,7 +11,7 @@
         },
         {
             "extension": ".jpeg",
-            "content": "JPEG image data",
+            "description": "JPEG image data",
             "strings": [
                 "JPG",
                 "JPEG",
@@ -20,7 +20,7 @@
         },
         {
             "extension": ".png",
-            "content": "PNG image data",
+            "description": "PNG image data",
             "strings": [
                 "PNG",
                 "IHDR"
@@ -28,14 +28,14 @@
         },
         {
             "extension": ".gif",
-            "content": "GIF image data",
+            "description": "GIF image data",
             "strings": [
                 "GIF"
             ]
         },
         {
             "extension": ".pdf",
-            "content": "PDF document",
+            "description": "PDF document",
             "strings":[
                 "PDF"
             ]

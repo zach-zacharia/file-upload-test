@@ -16,14 +16,14 @@ import (
 
 // FileType represents each file type with an extension and content description
 type FileType struct {
-	Extension string   `json:"extension"`
-	Content   string   `json:"content"`
-	Strings   []string `json:"strings"`
+	Extension   string   `json:"extension"`
+	Description string   `json:"description"`
+	Strings     []string `json:"strings"`
 }
 
-// FileTypes represents the collection of file types
+// AllowedFiles represents the collection of file types
 type Rules struct {
-	FileTypes         []FileType `json:"file_types"`
+	AllowedFiles      []FileType `json:"allowed_files"`
 	ForbiddenKeywords []string   `json:"forbidden_keywords"`
 }
 
@@ -173,12 +173,12 @@ func extensionCheck() (map[string]string, map[string][]string, []string, error) 
 	}
 
 	contentMap := make(map[string]string)
-	for _, ft := range rules.FileTypes {
-		contentMap[ft.Extension] = ft.Content
+	for _, ft := range rules.AllowedFiles {
+		contentMap[ft.Extension] = ft.Description
 	}
 
 	stringMap := make(map[string][]string)
-	for _, ft := range rules.FileTypes {
+	for _, ft := range rules.AllowedFiles {
 		stringMap[ft.Extension] = ft.Strings
 	}
 
