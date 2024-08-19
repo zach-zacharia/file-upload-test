@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload File</title>
+    <title>File Filter Test</title>
     <script>
         function upload_file(event) {
             event.preventDefault(); // Prevent the form from submitting the traditional way
@@ -17,7 +17,7 @@
             var input = new FormData();
             input.append("file", file);
 
-            fetch("/upload", { // Adjust endpoint if necessary
+            fetch("/upload", { 
                 method: "POST",
                 body: input
             })
@@ -38,6 +38,7 @@
     <div id="upload_area">
         <h1>Upload File</h1>
         <p>Allowed file formats : .jpg, .jpeg, .png, .gif, .pdf</p>
+        <p>Please refer to rules.json file for other allowed formats</p>
         <form id="upload_form" onsubmit="upload_file(event)" enctype="multipart/form-data">
             <input type="file" name="file" />
             <button type="submit">Upload</button>
