@@ -44,6 +44,8 @@
 
     "forbidden_files": [
         "executable",
-        "script"
+        "script",
+        "xxe",
+        "php"
     ]
 }

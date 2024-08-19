@@ -109,6 +109,22 @@ func main() {
 			return
 		}
 
+		// Exiftool check
+		cmd = exec.Command("exiftool", tempFile.Name())
+		output, err = cmd.Output()
+		if err != nil {
+			response := gin.H{"message": err.Error()}
+			c.JSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		if containsAnyString(string(output), forbiddenFiles) {
+			color.Red("Anomalies found within tags!")
+			response := gin.H{"message": "Forbidden tags found!"}
+			c.JSON(http.StatusForbidden, response)
+			return
+		}
+
 		// Checking hidden files using binwalk
 		cmd = exec.Command("binwalk", tempFile.Name())
 		output, err = cmd.Output()
