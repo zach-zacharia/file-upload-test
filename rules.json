@@ -42,10 +42,12 @@
         }
     ],
 
-    "forbidden_files": [
+    "forbidden_keywords": [
         "executable",
         "script",
         "xxe",
-        "php"
+        "php",
+        "<?php",
+        "?>"
     ]
 }

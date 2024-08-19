@@ -23,8 +23,8 @@ type FileType struct {
 
 // FileTypes represents the collection of file types
 type Rules struct {
-	FileTypes      []FileType `json:"file_types"`
-	ForbiddenFiles []string   `json:"forbidden_files"`
+	FileTypes         []FileType `json:"file_types"`
+	ForbiddenKeywords []string   `json:"forbidden_keywords"`
 }
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, filestrings, forbiddenFiles, err := extensionCheck()
+		fileinfo, filestrings, forbiddenKeywords, err := extensionCheck()
 		if err != nil {
 			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
@@ -118,7 +118,7 @@ func main() {
 			return
 		}
 
-		if containsAnyString(string(output), forbiddenFiles) {
+		if containsAnyString(string(output), forbiddenKeywords) {
 			color.Red("Anomalies found within tags!")
 			response := gin.H{"message": "Forbidden tags found!"}
 			c.JSON(http.StatusForbidden, response)
@@ -134,7 +134,7 @@ func main() {
 			return
 		}
 
-		if containsAnyString(string(output), forbiddenFiles) {
+		if containsAnyString(string(output), forbiddenKeywords) {
 			color.Red("Forbidden hidden files found!")
 			response := gin.H{"message": "Forbidden hidden files detected"}
 			c.JSON(http.StatusForbidden, response)
@@ -182,7 +182,7 @@ func extensionCheck() (map[string]string, map[string][]string, []string, error) 
 		stringMap[ft.Extension] = ft.Strings
 	}
 
-	forbiddenFiles := rules.ForbiddenFiles
+	forbiddenFiles := rules.ForbiddenKeywords
 
 	return contentMap, stringMap, forbiddenFiles, nil
 }
