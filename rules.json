@@ -48,12 +48,6 @@
 
     "forbidden_keywords": [
         "executable",
-        "script",
-        "&xxe",
-        "url",
-        "?return",
-        "<?php",
-        "<?xml",
-        "?>"
+        "script"
     ]
 }

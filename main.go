@@ -45,7 +45,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, filestrings, forbiddenKeywords, err := extensionCheck()
+		fileinfo, _, forbiddenKeywords, err := extensionCheck()
 		if err != nil {
 			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
@@ -94,36 +94,36 @@ func main() {
 		}
 
 		// File strings check
-		cmd = exec.Command("strings", tempFile.Name())
-		output, err = cmd.Output()
-		if err != nil {
-			response := gin.H{"message": err.Error()}
-			c.JSON(http.StatusInternalServerError, response)
-			return
-		}
+		// cmd = exec.Command("strings", tempFile.Name())
+		// output, err = cmd.Output()
+		// if err != nil {
+		// 	response := gin.H{"message": err.Error()}
+		// 	c.JSON(http.StatusInternalServerError, response)
+		// 	return
+		// }
 
-		if !containsAnyString(string(output), filestrings[fileExt]) {
-			color.Red("\nIrregular strings found inside file!")
-			response := gin.H{"message": "Irregular strings in file detected"}
-			c.JSON(http.StatusForbidden, response)
-			return
-		}
+		// if !containsAnyString(string(output), filestrings[fileExt]) {
+		// 	color.Red("\nIrregular strings found inside file!")
+		// 	response := gin.H{"message": "Mismatching strings in file detected"}
+		// 	c.JSON(http.StatusForbidden, response)
+		// 	return
+		// }
 
-		// Exiftool check
-		cmd = exec.Command("exiftool", tempFile.Name())
-		output, err = cmd.Output()
-		if err != nil {
-			response := gin.H{"message": err.Error()}
-			c.JSON(http.StatusInternalServerError, response)
-			return
-		}
+		// // Exiftool check
+		// cmd = exec.Command("exiftool", tempFile.Name())
+		// output, err = cmd.Output()
+		// if err != nil {
+		// 	response := gin.H{"message": err.Error()}
+		// 	c.JSON(http.StatusInternalServerError, response)
+		// 	return
+		// }
 
-		if containsAnyString(string(output), forbiddenKeywords) {
-			color.Red("Anomalies found within tags!")
-			response := gin.H{"message": "Forbidden tags found!"}
-			c.JSON(http.StatusForbidden, response)
-			return
-		}
+		// if containsAnyString(string(output), forbiddenKeywords) {
+		// 	color.Red("Anomalies found within tags!")
+		// 	response := gin.H{"message": "Forbidden tags found!"}
+		// 	c.JSON(http.StatusForbidden, response)
+		// 	return
+		// }
 
 		// Checking hidden files using binwalk
 		cmd = exec.Command("binwalk", tempFile.Name())
