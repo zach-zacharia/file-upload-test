@@ -141,6 +141,13 @@ func main() {
 			return
 		}
 
+		// clamAV check
+		if clamavCheck(tempFile.Name()) {
+			response := gin.H{"message": "This file contains a virus. Aborting upload."}
+			c.JSON(http.StatusForbidden, response)
+			return
+		}
+
 		// Move the file to the final destination
 		finalPath := "./user_files/" + fileHeader.Filename
 		err = os.Rename(tempFile.Name(), finalPath)
@@ -210,4 +217,22 @@ func containsAnyString(output string, expectedStrings []string) bool {
 
 func normalizeContentDescription(content string) string {
 	return strings.ToLower(strings.TrimSpace(content))
+}
+
+func clamavCheck(file string) bool {
+	cmd := exec.Command("clamscan", file)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("Error during the scanning process: %v\n", err)
+		return true
+	}
+	result := string(output)
+	fmt.Print(result)
+	if strings.Contains(result, "FOUND") {
+		color.Red("A virus has been spotted inside the file!\n")
+		return true
+	} else {
+		color.Green("No virus has been spotted. Proceeding...\n")
+		return false
+	}
 }
