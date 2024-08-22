@@ -39,10 +39,6 @@
             "strings":[
                 "PDF"
             ]
-        },
-        {
-            "extension": ".zip",
-            "description": "Zip archive data"
         }
     ],
 

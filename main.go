@@ -45,7 +45,7 @@ func main() {
 		}
 
 		fileExt := filepath.Ext(fileHeader.Filename)
-		fileinfo, _, forbiddenKeywords, err := extensionCheck()
+		fileinfo, _, _, err := extensionCheck()
 		if err != nil {
 			response := gin.H{"message": err.Error()}
 			c.JSON(http.StatusInternalServerError, response)
@@ -126,20 +126,20 @@ func main() {
 		// }
 
 		// Checking hidden files using binwalk
-		cmd = exec.Command("binwalk", tempFile.Name())
-		output, err = cmd.Output()
-		if err != nil {
-			response := gin.H{"message": err.Error()}
-			c.JSON(http.StatusInternalServerError, response)
-			return
-		}
+		// cmd = exec.Command("binwalk", tempFile.Name())
+		// output, err = cmd.Output()
+		// if err != nil {
+		// 	response := gin.H{"message": err.Error()}
+		// 	c.JSON(http.StatusInternalServerError, response)
+		// 	return
+		// }
 
-		if containsAnyString(string(output), forbiddenKeywords) {
-			color.Red("Forbidden hidden files found!")
-			response := gin.H{"message": "Forbidden hidden files detected"}
-			c.JSON(http.StatusForbidden, response)
-			return
-		}
+		// if containsAnyString(string(output), forbiddenKeywords) {
+		// 	color.Red("Forbidden hidden files found!")
+		// 	response := gin.H{"message": "Forbidden hidden files detected"}
+		// 	c.JSON(http.StatusForbidden, response)
+		// 	return
+		// }
 
 		// clamAV check
 		if clamavCheck(tempFile.Name()) {
