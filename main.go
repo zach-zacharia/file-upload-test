@@ -59,8 +59,9 @@ func main() {
 			response := gin.H{"message": "File extension is not allowed"}
 			c.JSON(http.StatusForbidden, response)
 			return
+		} else if ok {
+			color.Green("File is allowed. Proceeding to duplicate file for further scanning...\n\n")
 		}
-
 		tempFile, err := os.CreateTemp("./user_files", fileHeader.Filename)
 		if err != nil {
 			response := gin.H{"message": err.Error()}
@@ -91,6 +92,8 @@ func main() {
 			response := gin.H{"message": "File description does not match the expected type"}
 			c.JSON(http.StatusForbidden, response)
 			return
+		} else if containsContent(string(output), contentDescription) {
+			color.Green("File description matches the file extension. Proceeding...\n\n")
 		}
 
 		// File strings check
@@ -104,42 +107,12 @@ func main() {
 
 		if !containsAnyString(string(output), filestrings[fileExt]) {
 			color.Red("\nIrregular strings found inside file!")
-			response := gin.H{"message": "Mismatching strings in file detected"}
+			response := gin.H{"message": "Mismatching or irregular strings in file detected"}
 			c.JSON(http.StatusForbidden, response)
 			return
+		} else if containsAnyString(string(output), filestrings[fileExt]) {
+			color.Green("No unusual strings found. Proceeding...\n\n")
 		}
-
-		// // Exiftool check
-		// cmd = exec.Command("exiftool", tempFile.Name())
-		// output, err = cmd.Output()
-		// if err != nil {
-		// 	response := gin.H{"message": err.Error()}
-		// 	c.JSON(http.StatusInternalServerError, response)
-		// 	return
-		// }
-
-		// if containsAnyString(string(output), forbiddenKeywords) {
-		// 	color.Red("Anomalies found within tags!")
-		// 	response := gin.H{"message": "Forbidden tags found!"}
-		// 	c.JSON(http.StatusForbidden, response)
-		// 	return
-		// }
-
-		// // Checking hidden files using binwalk
-		// cmd = exec.Command("binwalk", tempFile.Name())
-		// output, err = cmd.Output()
-		// if err != nil {
-		// 	response := gin.H{"message": err.Error()}
-		// 	c.JSON(http.StatusInternalServerError, response)
-		// 	return
-		// }
-
-		// if containsAnyString(string(output), forbiddenKeywords) {
-		// 	color.Red("Forbidden hidden files found!")
-		// 	response := gin.H{"message": "Forbidden hidden files detected"}
-		// 	c.JSON(http.StatusForbidden, response)
-		// 	return
-		// }
 
 		// Check for forbidden files or keywords
 		code, found := checkForbidden(tempFile.Name(), forbiddenKeywords)
@@ -148,6 +121,8 @@ func main() {
 			response := gin.H{"message": "Forbidden files and/or tags are found"}
 			c.JSON(http.StatusForbidden, response)
 			return
+		} else if !found {
+			color.Green(code)
 		}
 
 		// clamAV check
@@ -205,16 +180,16 @@ func extensionCheck() (map[string]string, map[string][]string, []string, error) 
 
 func containsContent(output, contentDescription string) bool {
 
-	fmt.Printf("Command output: %s\n", output)                           // Debug print
-	fmt.Printf("Expected content description: %s\n", contentDescription) // Debug print
+	// fmt.Printf("Command output: %s\n", output)                           // Debug print
+	// fmt.Printf("Expected content description: %s\n", contentDescription) // Debug print
 
 	normalizedContent := normalizeContentDescription(contentDescription)
 	return strings.Contains(strings.ToLower(output), normalizedContent)
 }
 
 func containsAnyString(output string, expectedStrings []string) bool {
-	fmt.Printf("Command output: %s\n", output)            // Debug print
-	fmt.Printf("Expected strings: %v\n", expectedStrings) // Debug print
+	// fmt.Printf("Command output: %s\n", output)            // Debug print
+	// fmt.Printf("Expected strings: %v\n", expectedStrings) // Debug print
 
 	for _, str := range expectedStrings {
 		if strings.Contains(strings.ToLower(output), strings.ToLower(strings.TrimSpace(str))) {
@@ -229,15 +204,12 @@ func normalizeContentDescription(content string) string {
 }
 
 func clamavCheck(file string) bool {
+	color.Yellow("Beginning clamAV scan...\n")
 	cmd := exec.Command("clamscan", file)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("Error during the scanning process: %v\n", err)
-		return true
-	}
+	output, _ := cmd.CombinedOutput()
 	result := string(output)
 	if strings.Contains(result, "FOUND") {
-		color.Red("A virus has been spotted inside the file!\n")
+		color.Red("A virus has been spotted inside the file! Aborting upload...\n")
 		return true
 	} else {
 		color.Green("No virus has been spotted. Proceeding...\n")
@@ -252,26 +224,28 @@ func checkForbidden(file string, forbiddenList []string) (results string, foundF
 	output, err := cmd.Output()
 	switch {
 	case err != nil:
-		result := fmt.Sprintf(codes[0], "during exiftool scan\n")
+		result := fmt.Sprint(codes[0], " during exiftool scan\n")
 		return result, true
 	case containsAnyString(string(output), forbiddenList):
-		result := fmt.Sprintf(codes[2], "during exiftool scan\n")
+		result := fmt.Sprint(codes[2], " during exiftool scan\n")
 		return result, true
 	}
 
-	color.Green("Nothing unusual found during exiftool check. Proceeding...\n")
+	color.Green("Nothing unusual found during exiftool check. Proceeding...\n\n")
 	color.Yellow("Beginning binwalk scan...\n")
 	cmd = exec.Command("binwalk", file)
 	output, err = cmd.Output()
 	switch {
 	case err != nil:
-		result := fmt.Sprintf(codes[0], "during binwalk scan\n")
+		result := fmt.Sprint(codes[0], " during binwalk scan\n")
 		return result, true
 	case containsAnyString(string(output), forbiddenList):
-		result := fmt.Sprintf(codes[2], "during binwalk scan\n")
+		result := fmt.Sprint(codes[2], " during binwalk scan\n")
 		return result, true
 	}
 
-	result := fmt.Sprintf(codes[1], "during scans. Proceeding...\n")
+	color.Green("Nothing unusual found during binwalk check. Proceeding...\n\n")
+
+	result := fmt.Sprint(codes[1], " during scans. Proceeding...\n\n")
 	return result, false
 }
